@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>0x13 // TERMINAL</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            color: #00ff41;
+            font-family: "Courier New", monospace;
+            font-size: 14px;
+            padding: 24px;
+            min-height: 100vh;
+        }
+        #terminal { max-width: 720px; margin: 0 auto; }
+        .line { margin-bottom: 4px; white-space: pre-wrap; word-break: break-all; }
+        .line.error { color: #ff3333; }
+        .line.success { color: #00ff41; }
+        .line.hint { color: #888; }
+        .input-row { display: flex; margin-top: 4px; }
+        .prompt { color: #00ff41; margin-right: 8px; flex-shrink: 0; }
+        #cmd-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #00ff41;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+        }
+        .blink { animation: blink 1s step-end infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+        #cursor { display: inline-block; width: 8px; height: 14px; background: #00ff41; vertical-align: middle; }
+    </style>
+</head>
+<body>
+<div id="terminal">
+    <div class="line">0x13 TERMINAL v0.1.3</div>
+    <div class="line">Type <span style="color:#fff">help</span> for available commands.</div>
+    <div class="line hint">Hint: The signal is split across three layers.</div>
+    <div id="output"></div>
+    <div class="input-row">
+        <span class="prompt">root@0x13:~$</span>
+        <input type="text" id="cmd-input" autofocus autocomplete="off" spellcheck="false">
+    </div>
+</div>
+
+<script>
+    const output = document.getElementById("output");
+    const input = document.getElementById("cmd-input");
+
+    // 游戏状态：需要按顺序找到三个碎片
+    const fragments = {
+        layer1: false,
+        layer2: false,
+        layer3: false
+    };
+
+    const commands = {
+        help: () => {
+            print("Available commands:", "success");
+            print("  scan       - Scan for hidden signals");
+            print("  decode     - Decode a found signal");
+            print("  extract    - Extract hidden data");
+            print("  status     - Check progress");
+            print("  clear      - Clear terminal");
+        },
+
+        scan: () => {
+            if (!fragments.layer1) {
+                print("Scanning...", "hint");
+                setTimeout(() => {
+                    fragments.layer1 = true;
+                    print("[FOUND] Signal fragment #1: 0x13", "success");
+                    print("Use 'decode' to process it.", "hint");
+                }, 800);
+            } else {
+                print("No new signals detected.", "hint");
+            }
+        },
+
+        decode: () => {
+            if (!fragments.layer1) {
+                print("No signal to decode. Run 'scan' first.", "error");
+                return;
+            }
+            if (!fragments.layer2) {
+                print("Decoding...", "hint");
+                setTimeout(() => {
+                    fragments.layer2 = true;
+                    print("[DECODED] Fragment #2: cicada", "success");
+                    print("Use 'extract' to continue.", "hint");
+                }, 1000);
+            } else {
+                print("Nothing more to decode.", "hint");
+            }
+        },
+
+        extract: () => {
+            if (!fragments.layer2) {
+                print("No data to extract. Run 'decode' first.", "error");
+                return;
+            }
+            if (!fragments.layer3) {
+                print("Extracting...", "hint");
+                setTimeout(() => {
+                    fragments.layer3 = true;
+                    print("[EXTRACTED] Fragment #3: 19", "success");
+                    print("All fragments collected. Assembling key...", "success");
+                    setTimeout(unlock, 1200);
+                }, 1200);
+            } else {
+                print("All data already extracted.", "hint");
+            }
+        },
+
+        status: () => {
+            const total = Object.values(fragments).filter(Boolean).length;
+            print(`Progress: ${total}/3 fragments found`, "success");
+            if (total === 3) print("All fragments collected. Use 'extract' to finalize.", "hint");
+        },
+
+        clear: () => {
+            output.innerHTML = "";
+        }
+    };
+
+    function unlock() {
+        print("", "");
+        print("========================================", "success");
+        print("  ACCESS GRANTED", "success");
+        print("  WELCOME TO CICADA 0x13", "success");
+        print("========================================", "success");
+        print("", "");
+        print("Downloading payload...", "hint");
+
+        setTimeout(() => {
+            triggerDownload("./secret.jpg", "clue_0x13.jpg");
+            print("Payload saved.", "success");
+        }, 1500);
+    }
+
+    function triggerDownload(url, filename) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function print(text, type) {
+        const div = document.createElement("div");
+        div.className = "line " + (type || "");
+        div.textContent = text;
+        output.appendChild(div);
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            const cmd = input.value.trim().toLowerCase();
+            input.value = "";
+            if (!cmd) return;
+            print(`root@0x13:~$ ${cmd}`, "");
+            if (commands[cmd]) {
+                commands[cmd]();
+            } else {
+                print(`Command not found: ${cmd}`, "error");
+            }
+        }
+    });
+
+    // 点击页面任意位置聚焦输入框
+    document.addEventListener("click", () => input.focus());
+</script>
+</body>
+</html>
